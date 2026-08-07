@@ -11,13 +11,20 @@ import (
 )
 
 type postmanCollection struct {
-	Info Info   `json:"info"`
-	Item []Item `json:"item"`
+	Info     Info       `json:"info"`
+	Item     []Item     `json:"item"`
+	Variable []Variable `json:"variable,omitempty"`
 }
 
 type Info struct {
 	Name   string `json:"name"`
 	Schema string `json:"schema"`
+}
+
+type Variable struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+	Type  string `json:"type,omitempty"`
 }
 
 type Item struct {
@@ -62,30 +69,27 @@ func getFolderName(path string) string {
 	}
 
 	folder := parts[0]
-
 	if strings.ToLower(parts[0]) == "api" && len(parts) > 1 {
 		folder = parts[1]
 	}
-
 	if len(folder) > 0 {
 		folder = strings.ToUpper(string(folder[0])) + folder[1:]
 	}
 	return folder
 }
 
-func GeneratePostmanCollection(endpoints []models.Endpoint, Filename string) error {
+func GeneratePostmanCollection(endpoints []models.Endpoint, filename string) error {
 	collection := postmanCollection{
 		Info: Info{
 			Name:   "Vedoc Generated API",
 			Schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		},
+		Variable: []Variable{{Key: "baseUrl", Value: "", Type: "string"}},
 	}
 
 	folders := make(map[string]*Item)
-
-	for _, ep := range endpoints {
+	for _, ep := range models.ResolvedEndpoints(endpoints) {
 		pathParts := strings.Split(strings.TrimPrefix(ep.Path, "/"), "/")
-
 		req := &Request{
 			Method:      ep.Method,
 			Description: ep.Description,
@@ -98,36 +102,25 @@ func GeneratePostmanCollection(endpoints []models.Endpoint, Filename string) err
 
 		if ep.Payload != "" && ep.Payload != "{}" && ep.Payload != `""` {
 			req.Header = append(req.Header, Header{Key: "Content-Type", Value: "application/json"})
-			req.Body = &Body{
-				Mode: "raw",
-				Raw:  ep.Payload,
-			}
+			req.Body = &Body{Mode: "raw", Raw: ep.Payload}
 			req.Body.Options.Raw.Language = "json"
 		}
 
-		reqItem := Item{
+		folderName := getFolderName(ep.Path)
+		if _, exists := folders[folderName]; !exists {
+			folders[folderName] = &Item{Name: folderName, Item: []Item{}}
+		}
+		folders[folderName].Item = append(folders[folderName].Item, Item{
 			Name:    fmt.Sprintf("%s %s", ep.Method, ep.Path),
 			Request: req,
-		}
-
-		folderName := getFolderName(ep.Path)
-
-		if _, exists := folders[folderName]; !exists {
-			folders[folderName] = &Item{
-				Name: folderName,
-				Item: []Item{},
-			}
-		}
-
-		folders[folderName].Item = append(folders[folderName].Item, reqItem)
+		})
 	}
 
-	var folderNames []string
+	folderNames := make([]string, 0, len(folders))
 	for name := range folders {
 		folderNames = append(folderNames, name)
 	}
 	sort.Strings(folderNames)
-
 	for _, name := range folderNames {
 		collection.Item = append(collection.Item, *folders[name])
 	}
@@ -136,6 +129,5 @@ func GeneratePostmanCollection(endpoints []models.Endpoint, Filename string) err
 	if err != nil {
 		return err
 	}
-
-	return os.WriteFile(Filename, jsonData, 0644)
+	return os.WriteFile(filename, jsonData, 0o644)
 }
