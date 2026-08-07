@@ -46,12 +46,12 @@ type exportBinding struct {
 }
 
 type projectRoute struct {
-	receiver    string
+	receiver     string
 	receiverKind expressSymbolKind
-	method      string
-	path        string
-	snippet     string
-	position    uint32
+	method       string
+	path         string
+	snippet      string
+	position     uint32
 }
 
 type mountTarget struct {

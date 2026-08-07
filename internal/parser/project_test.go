@@ -219,7 +219,7 @@ app.use("/users", usersRouter);
 `),
 		},
 		{
-			Path: "src/routes/index.ts",
+			Path:   "src/routes/index.ts",
 			Source: []byte(`export { default } from "./users";`),
 		},
 		{

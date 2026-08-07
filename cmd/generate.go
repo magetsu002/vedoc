@@ -61,7 +61,7 @@ var generateCmd = &cobra.Command{
 			if readErr != nil {
 				return readErr
 			}
-		sourceFiles = append(sourceFiles, parser.SourceFile{Path: path, Source: sourceCode})
+			sourceFiles = append(sourceFiles, parser.SourceFile{Path: path, Source: sourceCode})
 			return nil
 		})
 
