@@ -111,16 +111,6 @@ func ParseExpressCode(sourceCode []byte, filename string, exactBasePath string) 
 					} else {
 						rawPath = exactBasePath + "/" + rawPath
 					}
-				} else {
-					prefix := strings.Split(filename, ".")[0]
-
-					if prefix != "index" && prefix != "server" && prefix != "app" && prefix != "routes" && prefix != "router" {
-						if rawPath == "/" || rawPath == "" {
-							rawPath = "/" + prefix
-						} else if !strings.HasPrefix(rawPath, "/"+prefix) {
-							rawPath = "/" + prefix + "/" + strings.TrimPrefix(rawPath, "/")
-						}
-					}
 				}
 
 				endpoint.Path = rawPath
