@@ -10,7 +10,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/RaniduNethma/vedoc/internal/ai"
 	"github.com/RaniduNethma/vedoc/internal/generator"
-	"github.com/RaniduNethma/vedoc/internal/models"
 	"github.com/RaniduNethma/vedoc/internal/parser"
 	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
