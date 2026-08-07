@@ -10,15 +10,15 @@ import (
 )
 
 var configCmd = &cobra.Command{
-	Use:   "config",
+	Use: "config",
 	Short: "Manage Vedoc Configurations",
-	Long:  "Set or update your Gemini API key and other configurations globally.",
+	Long: "Set or update your Gemini API key and other configurations globally.",
 }
 
 var setKeyCmd = &cobra.Command{
-	Use:   "set-key [API_KEY]",
+	Use: "set-key [API_KEY]",
 	Short: "Set your Gemini api key globally",
-	Args:  cobra.ExactArgs(1),
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		apiKey := args[0]
 
