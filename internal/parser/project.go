@@ -486,17 +486,24 @@ func (m *projectModule) collectMounts() error {
 			continue
 		}
 
-		prefix := ""
-		start := 0
-		if arguments.NamedChildCount() > 0 {
-			first := arguments.NamedChild(0)
-			if first.Type() == "string" {
-				prefix = normalizeMountPrefix(trimStringLiteral(first.Content(m.source)))
-				start = 1
-			}
+		argumentCount := int(arguments.NamedChildCount())
+		if argumentCount == 0 {
+			continue
 		}
 
-		for i := start; i < int(arguments.NamedChildCount()); i++ {
+		prefix := ""
+		start := 0
+		first := arguments.NamedChild(0)
+		if first.Type() == "string" {
+			prefix = normalizeMountPrefix(trimStringLiteral(first.Content(m.source)))
+			start = 1
+		} else if argumentCount != 1 {
+			// Multiple arguments without a static leading path are ambiguous.
+			// Do not invent a pathless router edge.
+			continue
+		}
+
+		for i := start; i < argumentCount; i++ {
 			candidate := arguments.NamedChild(i)
 			target, ok := m.mountTargetFromExpression(candidate)
 			if !ok {
