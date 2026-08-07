@@ -20,20 +20,17 @@ func ExtractBaseRoutes(code string) map[string]string {
 	inlineRegex := regexp.MustCompile(`use\s*\(\s*['"]([^'"]+)['"]\s*,\s*require\s*\(\s*['"]([^'"]+)['"]\s*\)\s*\)`)
 
 	varMap := make(map[string]string)
-
 	for _, m := range importRegex.FindAllStringSubmatch(code, -1) {
 		varMap[m[1]] = m[2]
 	}
 	for _, m := range requireRegex.FindAllStringSubmatch(code, -1) {
 		varMap[m[1]] = m[2]
 	}
-
 	for _, m := range inlineRegex.FindAllStringSubmatch(code, -1) {
 		basePath, importPath := m[1], m[2]
 		parts := strings.Split(importPath, "/")
 		routes[parts[len(parts)-1]] = basePath
 	}
-
 	for _, m := range useRegex.FindAllStringSubmatch(code, -1) {
 		basePath, routerVar := m[1], m[2]
 		if importPath, exists := varMap[routerVar]; exists {
@@ -41,14 +38,12 @@ func ExtractBaseRoutes(code string) map[string]string {
 			routes[parts[len(parts)-1]] = basePath
 		}
 	}
-
 	return routes
 }
 
 func ParseExpressCode(sourceCode []byte, filename string, exactBasePath string) []models.Endpoint {
 	var endpoints []models.Endpoint
 	var lang *sitter.Language
-
 	if strings.HasSuffix(filename, ".ts") {
 		lang = typescript.GetLanguage()
 	} else {
@@ -57,7 +52,6 @@ func ParseExpressCode(sourceCode []byte, filename string, exactBasePath string) 
 
 	parser := sitter.NewParser()
 	parser.SetLanguage(lang)
-
 	tree, _ := parser.ParseCtx(context.Background(), nil, sourceCode)
 	rootNode := tree.RootNode()
 	receiverAnalyzer := newExpressReceiverAnalyzer(rootNode, sourceCode)
@@ -73,12 +67,10 @@ func ParseExpressCode(sourceCode []byte, filename string, exactBasePath string) 
 		)
 	) @full_route
 	`
-
 	q, err := sitter.NewQuery([]byte(queryStr), lang)
 	if err != nil {
 		return endpoints
 	}
-
 	qc := sitter.NewQueryCursor()
 	qc.Exec(q, rootNode)
 
@@ -88,43 +80,38 @@ func ParseExpressCode(sourceCode []byte, filename string, exactBasePath string) 
 			break
 		}
 
-		var endpoint models.Endpoint
+		endpoint := models.Endpoint{Resolution: models.ResolutionResolved}
 		var receiverNode *sitter.Node
-
 		for _, c := range m.Captures {
 			nodeName := q.CaptureNameForId(c.Index)
 			nodeContent := c.Node.Content(sourceCode)
-
-			if nodeName == "receiver" {
+			switch nodeName {
+			case "receiver":
 				receiverNode = c.Node
-			} else if nodeName == "method" {
+			case "method":
 				endpoint.Method = strings.ToUpper(nodeContent)
-			} else if nodeName == "path" {
+			case "path":
 				rawPath := strings.Trim(nodeContent, `'"`)
-
+				endpoint.LocalPath = rawPath
 				if exactBasePath != "" {
 					exactBasePath = strings.TrimSuffix(exactBasePath, "/")
 					rawPath = strings.TrimPrefix(rawPath, "/")
-
 					if rawPath == "" {
 						rawPath = exactBasePath
 					} else {
 						rawPath = exactBasePath + "/" + rawPath
 					}
 				}
-
 				endpoint.Path = rawPath
-			} else if nodeName == "full_route" {
+			case "full_route":
 				endpoint.CodeSnippet = nodeContent
 			}
 		}
 
 		validMethods := map[string]bool{"GET": true, "POST": true, "PUT": true, "DELETE": true, "PATCH": true}
-
 		if validMethods[endpoint.Method] && receiverAnalyzer.provesReceiver(receiverNode) {
 			endpoints = append(endpoints, endpoint)
 		}
 	}
-
 	return endpoints
 }
