@@ -127,7 +127,7 @@ func ResolveExpressProject(files []SourceFile) ([]models.Endpoint, error) {
 	}
 
 	resolver.buildGraph()
-	return resolver.resolveEndpoints(), nil
+	return resolver.resolveIR(), nil
 }
 
 func analyzeProjectModule(modulePath string, source []byte) (*projectModule, error) {

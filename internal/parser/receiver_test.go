@@ -125,6 +125,9 @@ localRouter.get("/leaked", handler);
 func endpointSignatures(endpoints []models.Endpoint) []string {
 	signatures := make([]string, 0, len(endpoints))
 	for _, endpoint := range endpoints {
+		if !endpoint.IsResolved() || endpoint.Path == "" {
+			continue
+		}
 		signatures = append(signatures, endpoint.Method+" "+endpoint.Path)
 	}
 	return signatures

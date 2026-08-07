@@ -8,9 +8,9 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "vedoc",
+	Use:   "vedoc",
 	Short: "Instant API Docs. No Comments Required.",
-	Long: "Vedoc scans your codebase, parses the AST using Tree-sitter, and uses AI to automatically generate Postman/Swagger documentation.",
+	Long:  "Vedoc scans your codebase, parses the AST using Tree-sitter, and uses AI to automatically generate Postman/Swagger documentation.",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Print("Welcome to Vedoc, Run 'vedoc --help' to get started.")
 	},

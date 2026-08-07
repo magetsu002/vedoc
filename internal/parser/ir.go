@@ -197,6 +197,9 @@ func findCallExpression(node *sitter.Node, position uint32) *sitter.Node {
 	if node == nil || node.IsNull() || position < node.StartByte() || position >= node.EndByte() {
 		return nil
 	}
+	if node.Type() == "call_expression" && node.StartByte() == position {
+		return node
+	}
 
 	for i := 0; i < int(node.NamedChildCount()); i++ {
 		child := node.NamedChild(i)

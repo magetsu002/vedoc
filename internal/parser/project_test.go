@@ -278,7 +278,7 @@ module.exports = router;
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != 0 {
-		t.Fatalf("ResolveExpressProject() emitted ambiguous routes: %#v", endpointSignatures(got))
+	if signatures := endpointSignatures(got); len(signatures) != 0 {
+		t.Fatalf("ResolveExpressProject() emitted ambiguous resolved routes: %#v", signatures)
 	}
 }
